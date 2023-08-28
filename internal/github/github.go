@@ -36,7 +36,7 @@ type PullRequest struct {
 
 type GitHub interface {
 	ForkAndClone(output io.Writer, workingDir string, fullRepoName string) error
-	Clone(output io.Writer, workingDir string, fullRepoName string) error
+	Clone(output io.Writer, workingDir, fullRepoName, branchName, repoDir string) error
 	CreatePullRequest(output io.Writer, workingDir string, metadata PullRequest) (didCreate bool, err error)
 	ClosePullRequest(output io.Writer, workingDir string, branchName string) error
 	GetPR(output io.Writer, workingDir string, branchName string) (*PrStatus, error)
@@ -74,8 +74,15 @@ func (r *RealGitHub) ForkAndClone(output io.Writer, workingDir string, fullRepoN
 	return execInstance.Execute(output, workingDir, "gh", "repo", "fork", "--clone=true", fullRepoName)
 }
 
-func (r *RealGitHub) Clone(output io.Writer, workingDir string, fullRepoName string) error {
-	return execInstance.Execute(output, workingDir, "gh", "repo", "clone", fullRepoName)
+func (r *RealGitHub) Clone(output io.Writer, workingDir string, fullRepoName, branchName, repoDir string) error {
+	args := []string{"repo", "clone", fullRepoName}
+	if repoDir != "" {
+		args = append(args, repoDir)
+	}
+	if branchName != "" {
+		args = append(args, "--", "--branch", branchName)
+	}
+	return execInstance.Execute(output, workingDir, "gh", args...)
 }
 
 func (r *RealGitHub) ClosePullRequest(output io.Writer, workingDir string, branchName string) error {

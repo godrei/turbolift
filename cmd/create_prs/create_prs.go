@@ -17,7 +17,6 @@ package create_prs
 
 import (
 	"os"
-	"path"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -76,7 +75,7 @@ func run(c *cobra.Command, _ []string) {
 			time.Sleep(sleep)
 		}
 
-		repoDirPath := path.Join("work", repo.OrgName, repo.RepoName) // i.e. work/org/repo
+		repoDirPath := repo.FullRepoPath()
 
 		pushActivity := logger.StartActivity("Pushing changes in %s to origin", repo.FullRepoName)
 		// skip if the working copy does not exist

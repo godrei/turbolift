@@ -30,6 +30,7 @@ type Repo struct {
 	OrgName      string
 	RepoName     string
 	FullRepoName string
+	BranchName   string
 }
 
 type Campaign struct {
@@ -40,7 +41,11 @@ type Campaign struct {
 }
 
 func (r Repo) FullRepoPath() string {
-	return path.Join("work", r.OrgName, r.RepoName) // i.e. work/org/repo
+	repoName := r.RepoName
+	if r.BranchName != "" {
+		repoName += "-" + r.BranchName
+	}
+	return path.Join("work", r.OrgName, repoName) // i.e. work/org/repo
 }
 
 type CampaignOptions struct {
@@ -99,27 +104,38 @@ func readReposTxtFile(filename string) ([]Repo, error) {
 			}
 			uniq[line] = struct{}{}
 
+			var host, orgName, repoName string
 			splitLine := strings.Split(line, "/")
-			numParts := len(splitLine)
 
-			var repo Repo
-			switch numParts {
+			switch len(splitLine) {
 			case 2:
-				repo = Repo{
-					OrgName:      splitLine[0],
-					RepoName:     splitLine[1],
-					FullRepoName: line,
-				}
+				orgName, repoName = splitLine[0], splitLine[1]
 			case 3:
-				repo = Repo{
-					Host:         splitLine[0],
-					OrgName:      splitLine[1],
-					RepoName:     splitLine[2],
-					FullRepoName: line,
-				}
+				host, orgName, repoName = splitLine[0], splitLine[1], splitLine[2]
 			default:
 				return nil, fmt.Errorf("unable to parse entry in %s file: %s", filename, line)
 			}
+
+			var fullRepoName, branchName string
+			splitRepoName := strings.Split(repoName, "@")
+
+			switch len(splitRepoName) {
+			case 1:
+				fullRepoName = line
+			case 2:
+				repoName = splitRepoName[0]
+				branchName = splitRepoName[1]
+				fullRepoName = strings.TrimSuffix(line, "@"+branchName)
+			}
+
+			repo := Repo{
+				Host:         host,
+				OrgName:      orgName,
+				RepoName:     repoName,
+				FullRepoName: fullRepoName,
+				BranchName:   branchName,
+			}
+
 			repos = append(repos, repo)
 		}
 	}

@@ -40,7 +40,8 @@ func (f *FakeGitHub) ForkAndClone(output io.Writer, workingDir string, fullRepoN
 	return err
 }
 
-func (f *FakeGitHub) Clone(output io.Writer, workingDir string, fullRepoName string) error {
+func (f *FakeGitHub) Clone(output io.Writer, workingDir string, fullRepoName, branchName, repoDir string) error {
+	// TODO: handle branchName
 	f.calls = append(f.calls, []string{workingDir, fullRepoName})
 	_, err := f.handler(output, workingDir, fullRepoName)
 	return err

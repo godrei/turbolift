@@ -16,10 +16,8 @@
 package commit
 
 import (
-	"os"
-	"path"
-
 	"github.com/spf13/cobra"
+	"os"
 
 	"github.com/skyscanner/turbolift/internal/campaign"
 	"github.com/skyscanner/turbolift/internal/colors"
@@ -69,7 +67,7 @@ func run(c *cobra.Command, _ []string) {
 	skippedCount := 0
 	errorCount := 0
 	for _, repo := range dir.Repos {
-		repoDirPath := path.Join("work", repo.OrgName, repo.RepoName) // i.e. work/org/repo
+		repoDirPath := repo.FullRepoPath()
 
 		commitActivity := logger.StartActivity("Committing changes in %s", repo.FullRepoName)
 

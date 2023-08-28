@@ -69,6 +69,7 @@ func run(c *cobra.Command, _ []string) {
 		orgDirPath := path.Join("work", repo.OrgName) // i.e. work/org
 
 		var cloneActivity *logging.Activity
+		// TODO: Should we log the base branch?
 		if nofork {
 			cloneActivity = logger.StartActivity("Cloning %s into %s/%s", repo.FullRepoName, orgDirPath, repo.RepoName)
 		} else {
@@ -82,7 +83,7 @@ func run(c *cobra.Command, _ []string) {
 			break
 		}
 
-		repoDirPath := path.Join(orgDirPath, repo.RepoName) // i.e. work/org/repo
+		repoDirPath := repo.FullRepoPath()
 		// skip if the working copy is already cloned
 		if _, err = os.Stat(repoDirPath); !os.IsNotExist(err) {
 			cloneActivity.EndWithWarningf("Directory already exists")
@@ -91,8 +92,9 @@ func run(c *cobra.Command, _ []string) {
 		}
 
 		if nofork {
-			err = gh.Clone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName)
+			err = gh.Clone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName, repo.BranchName, path.Base(repoDirPath))
 		} else {
+			// TODO: handle branch
 			err = gh.ForkAndClone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName)
 		}
 
@@ -104,6 +106,7 @@ func run(c *cobra.Command, _ []string) {
 
 		cloneActivity.EndWithSuccess()
 
+		// TODO: update log
 		createBranchActivity := logger.StartActivity("Creating branch %s in %s", dir.Name, repo.FullRepoName)
 
 		err = g.Checkout(createBranchActivity.Writer(), repoDirPath, dir.Name)

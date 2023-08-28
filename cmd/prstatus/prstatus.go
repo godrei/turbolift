@@ -18,7 +18,6 @@ package prstatus
 import (
 	"fmt"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/fatih/color"
@@ -94,7 +93,7 @@ func run(c *cobra.Command, _ []string) {
 	detailsTable.WithWriter(logger.Writer())
 
 	for _, repo := range dir.Repos {
-		repoDirPath := path.Join("work", repo.OrgName, repo.RepoName) // i.e. work/org/repo
+		repoDirPath := repo.FullRepoPath()
 
 		checkStatusActivity := logger.StartActivity("Checking PR status for %s", repo.FullRepoName)
 
