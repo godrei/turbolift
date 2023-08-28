@@ -41,8 +41,7 @@ func (f *FakeGitHub) ForkAndClone(output io.Writer, workingDir string, fullRepoN
 }
 
 func (f *FakeGitHub) Clone(output io.Writer, workingDir string, fullRepoName, branchName, repoDir string) error {
-	// TODO: handle branchName
-	f.calls = append(f.calls, []string{workingDir, fullRepoName})
+	f.calls = append(f.calls, []string{workingDir, fullRepoName, branchName, repoDir})
 	_, err := f.handler(output, workingDir, fullRepoName)
 	return err
 }
