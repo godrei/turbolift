@@ -71,9 +71,9 @@ func run(c *cobra.Command, _ []string) {
 		var cloneActivity *logging.Activity
 		// TODO: Should we log the base branch?
 		if nofork {
-			cloneActivity = logger.StartActivity("Cloning %s into %s/%s", repo.FullRepoName, orgDirPath, repo.RepoName)
+			cloneActivity = logger.StartActivity("Cloning %s into %s/%s", repo.VisibleName(), orgDirPath, repo.DirName())
 		} else {
-			cloneActivity = logger.StartActivity("Forking and cloning %s into %s/%s", repo.FullRepoName, orgDirPath, repo.RepoName)
+			cloneActivity = logger.StartActivity("Forking and cloning %s into %s/%s", repo.VisibleName(), orgDirPath, repo.DirName())
 		}
 
 		err := os.MkdirAll(orgDirPath, os.ModeDir|0o755)
@@ -92,7 +92,7 @@ func run(c *cobra.Command, _ []string) {
 		}
 
 		if nofork {
-			err = gh.Clone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName, repo.BranchName, path.Base(repoDirPath))
+			err = gh.Clone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName, path.Base(repoDirPath), repo.BranchName)
 		} else {
 			// TODO: handle branch
 			err = gh.ForkAndClone(cloneActivity.Writer(), orgDirPath, repo.FullRepoName)

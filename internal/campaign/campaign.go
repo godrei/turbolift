@@ -29,7 +29,7 @@ type Repo struct {
 	Host         string
 	OrgName      string
 	RepoName     string
-	FullRepoName string
+	FullRepoName string // expected in a [host/]owner/repo
 	BranchName   string
 }
 
@@ -38,6 +38,22 @@ type Campaign struct {
 	Repos   []Repo
 	PrTitle string
 	PrBody  string
+}
+
+func (r Repo) DirName() string {
+	if r.BranchName == "" {
+		return r.RepoName
+
+	}
+
+	return r.RepoName + "-" + r.BranchName
+}
+
+func (r Repo) VisibleName() string {
+	if r.BranchName == "" {
+		return r.FullRepoName
+	}
+	return r.FullRepoName + "@" + r.BranchName
 }
 
 func (r Repo) FullRepoPath() string {

@@ -77,7 +77,7 @@ func run(c *cobra.Command, _ []string) {
 
 		repoDirPath := repo.FullRepoPath()
 
-		pushActivity := logger.StartActivity("Pushing changes in %s to origin", repo.FullRepoName)
+		pushActivity := logger.StartActivity("Pushing changes in %s to origin", repo.VisibleName())
 		// skip if the working copy does not exist
 		if _, err = os.Stat(repoDirPath); os.IsNotExist(err) {
 			pushActivity.EndWithWarningf("Directory %s does not exist - has it been cloned?", repoDirPath)
@@ -105,6 +105,7 @@ func run(c *cobra.Command, _ []string) {
 			Body:         dir.PrBody,
 			UpstreamRepo: repo.FullRepoName,
 			IsDraft:      isDraft,
+			BaseBranch:   repo.BranchName,
 		}
 
 		didCreate, err := gh.CreatePullRequest(createPrActivity.Writer(), repoDirPath, pullRequest)
