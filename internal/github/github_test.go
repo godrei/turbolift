@@ -136,7 +136,7 @@ func runForkAndCloneAndCaptureOutput() (string, error) {
 
 func runCloneAndCaptureOutput() (string, error) {
 	sb := strings.Builder{}
-	err := NewRealGitHub().Clone(&sb, "work/org", "org/repo1")
+	err := NewRealGitHub().Clone(&sb, "work/org", "org/repo1", "repo1", "")
 
 	return sb.String(), err
 }

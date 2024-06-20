@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/skyscanner/turbolift/internal/executor"
@@ -29,6 +30,7 @@ var execInstance executor.Executor = executor.NewRealExecutor()
 type PullRequest struct {
 	Title          string
 	Body           string
+	BaseBranch     string
 	UpstreamRepo   string
 	IsDraft        bool
 	ReviewDecision string
@@ -36,7 +38,7 @@ type PullRequest struct {
 
 type GitHub interface {
 	ForkAndClone(output io.Writer, workingDir string, fullRepoName string) error
-	Clone(output io.Writer, workingDir string, fullRepoName string) error
+	Clone(output io.Writer, workingDir, fullRepoName, repoDirName, branchName string) error
 	CreatePullRequest(output io.Writer, workingDir string, metadata PullRequest) (didCreate bool, err error)
 	ClosePullRequest(output io.Writer, workingDir string, branchName string) error
 	GetPR(output io.Writer, workingDir string, branchName string) (*PrStatus, error)
@@ -60,6 +62,10 @@ func (r *RealGitHub) CreatePullRequest(output io.Writer, workingDir string, pr P
 		gh_args = append(gh_args, "--draft")
 	}
 
+	if len(pr.BaseBranch) > 0 {
+		gh_args = append(gh_args, "--base", pr.BaseBranch)
+	}
+
 	execOutput, err := execInstance.ExecuteAndCapture(output, workingDir, "gh", gh_args...)
 	if strings.Contains(execOutput, "GraphQL error: No commits between") {
 		// no PR was created because there are no differences between remotes
@@ -74,8 +80,22 @@ func (r *RealGitHub) ForkAndClone(output io.Writer, workingDir string, fullRepoN
 	return execInstance.Execute(output, workingDir, "gh", "repo", "fork", "--clone=true", fullRepoName)
 }
 
-func (r *RealGitHub) Clone(output io.Writer, workingDir string, fullRepoName string) error {
-	return execInstance.Execute(output, workingDir, "gh", "repo", "clone", fullRepoName)
+func (r *RealGitHub) Clone(output io.Writer, workingDir string, fullRepoName, repoDirName, branchName string) error {
+	args := []string{"repo", "clone", fullRepoName, repoDirName}
+	if branchName != "" {
+		args = append(args, "--", "--branch", branchName)
+	}
+
+	if err := execInstance.Execute(output, workingDir, "gh", args...); err != nil {
+		return err
+	}
+
+	return r.setDefaultRepository(output, filepath.Join(workingDir, repoDirName), fullRepoName)
+}
+
+func (r *RealGitHub) setDefaultRepository(output io.Writer, workingDir string, fullRepoName string) error {
+	args := []string{"repo", "set-default", fullRepoName}
+	return execInstance.Execute(output, workingDir, "gh", args...)
 }
 
 func (r *RealGitHub) ClosePullRequest(output io.Writer, workingDir string, branchName string) error {
